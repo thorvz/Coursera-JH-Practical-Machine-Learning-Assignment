@@ -131,16 +131,6 @@ The data for this project come from this source: <a href="http://groupware.les.i
 <div id="load-and-clean-the-data" class="section level2">
 <h2>Load and Clean the Data</h2>
 <p>The data was downloaded from the above source to a local computer. A brief visual inspection showed lots of columns with “NA”&quot; data as well as “#DIV/0!”. These columns are removed as part of the data cleaning. The identification variables can also be removed.</p>
-<pre><code>## Rattle: A free graphical interface for data mining with R.
-## Version 4.1.0 Copyright (c) 2006-2015 Togaware Pty Ltd.
-## Type 'rattle()' to shake, rattle, and roll your data.</code></pre>
-<pre><code>## randomForest 4.6-12</code></pre>
-<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre><code>## 
-## Attaching package: 'randomForest'</code></pre>
-<pre><code>## The following object is masked from 'package:ggplot2':
-## 
-##     margin</code></pre>
 <pre class="r"><code>set.seed(343248)
 train_dataset &lt;- &quot;./pml-training.csv&quot;
 training_val &lt;- read.csv(file=train_dataset, header=TRUE, sep=&quot;,&quot;, na.strings=c(&quot;NA&quot;,&quot;#DIV/0!&quot;,&quot;&quot;))
