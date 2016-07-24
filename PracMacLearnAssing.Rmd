@@ -1,0 +1,120 @@
+---
+title: "Coursera - Practical Machine Learning"
+subtitle: "Course Project"
+author: "Thomas van Zyl"
+date: "24 July 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, the goal is to use data from accelerometers on the belt, forearm, arm, and dumbbell to do predictions on the manner the exercise (dumbbell curl) is done. Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E).  
+More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+## Data
+
+The training data for this project are available here: https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv  
+The test data are available here: https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv   
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har
+
+## Load and Clean the Data
+
+The data was downloaded from the above source to a local computer. A brief visual inspection showed lots of columns with "NA"" data as well as "#DIV/0!". These columns are removed as part of the data cleaning. The identification variables can also be removed.
+
+``` {r,echo=FALSE}
+setwd("C:/Users/Thomas/OneDrive/Documents/Study/Coursera/DataScience/08 - Practical Machine Learning/Assignments")
+library(lattice)
+library(ggplot2)
+library(caret)
+library(rpart)
+library(rattle)
+library(randomForest)
+```
+``` {r,echo=TRUE}
+set.seed(343248)
+train_dataset <- "./pml-training.csv"
+training_val <- read.csv(file=train_dataset, header=TRUE, sep=",", na.strings=c("NA","#DIV/0!",""))
+test_dataset <- "./pml-testing.csv"
+testing <- read.csv(file=test_dataset, header=TRUE, sep=",", na.strings=c("NA","#DIV/0!",""))
+```
+``` {r,echo=TRUE}
+dim(training_val)
+dim(testing)
+```
+
+Split the training data into a training and validation set (the test set is reserved for the final testing).
+
+``` {r,echo=TRUE}
+inTrain  <- createDataPartition(training_val$classe, p=0.75, list=FALSE)
+training <- training_val[inTrain, ]
+validation  <- training_val[-inTrain, ]
+```
+``` {r,echo=TRUE}
+dim(training)
+dim(validation)
+dim(testing)
+````
+
+Remove the identification columns (like user_name, etc.)
+
+``` {r,echo=TRUE}
+training <- training[, -(1:5)]
+validation <- validation[, -(1:5)]
+````
+
+Remove columns with more than 90% NA values
+
+``` {r,echo=TRUE}
+NA_Cols_9 <- sapply(training, function(x) mean(is.na(x))) > 0.9
+training <- training[, NA_Cols_9==FALSE]
+validation <- validation[, NA_Cols_9==FALSE]
+```
+``` {r,echo=TRUE}
+dim(training)
+dim(validation)
+````
+
+## Find Model
+
+For this project 2 models will be evaluated, decision trees and "good old faithful" random forests.
+
+### 1) Decision Tree
+
+``` {r,echo=TRUE,fig.width=10,fig.height=10}
+mod_DecTree <- train(classe ~ ., method="rpart", data=training)
+fancyRpartPlot(mod_DecTree$finalModel)
+predict_mod_DecTree <- predict(mod_DecTree,newdata = validation)
+confMatrix_DecTree <- confusionMatrix(validation$classe, predict_mod_DecTree)
+confMatrix_DecTree
+```
+
+The accuracy for the decision tree is: `r confMatrix_DecTree$overall[1]`
+
+### 2) Random Forests
+
+``` {r,echo=TRUE,fig.width=10,fig.height=10}
+mod_RandForest <- train(classe ~ ., method="rf", data=training)
+predict_mod_RandForest <- predict(mod_RandForest,newdata = validation)
+confMatrix_RandForest <- confusionMatrix(validation$classe, predict_mod_RandForest)
+confMatrix_RandForest
+```
+
+The accuracy for random forest is: `r confMatrix_RandForest$overall[1]`   
+
+## Final Prediction
+
+The random forest model is the most accurate, we can now apply the model to the test data set.
+
+``` {r,echo=TRUE}
+fin_predict <- predict(mod_RandForest, newdata=testing)
+fin_predict
+```
+
+This concludes the course project.   
+
+
+
